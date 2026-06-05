@@ -41,7 +41,7 @@ app.use(helmet())
 // CORS — whitelist specific origins instead of allowing all
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173']
+  : ['http://localhost:5173', 'https://shop4ever.vercel.app']
 
 app.use(cors({
   origin: (origin, callback) => {
