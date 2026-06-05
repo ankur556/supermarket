@@ -11,9 +11,10 @@
 [![MySQL](https://img.shields.io/badge/MySQL-Aiven_Cloud-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://aiven.io/)
 [![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Python](https://img.shields.io/badge/Python-3.9+-3776ab?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-**Shop4Ever** is a production-grade, full-stack supermarket management system built as a Database & Information Systems (DBIS) course project. It features three distinct user roles — **Owner**, [...]
+**Shop4Ever** is a production-grade, full-stack supermarket management system built as a Database & Information Systems (DBIS) course project. It features three distinct user roles — **Owner**, **Employee**, and **Consumer** — with an **AI-powered shopping assistant** using advanced RAG (Retrieval-Augmented Generation) and semantic product search.
 
 [Getting Started](#-getting-started) · [Features](#-features) · [Tech Stack](#-tech-stack) · [API Reference](#-api-reference) · [Architecture](#-architecture)
 
@@ -74,11 +75,11 @@
 ### 👤 Consumer Portal
 - **Product browsing** — Responsive grid with search, category filters, and price range filters
 - **Dynamic product images** — Auto-fetched from Unsplash API with ImageKit fallback
-- **Product details & Reviews** — Dedicated page with description, pricing, and a live **operational rating/review system**
+- **Product details & Reviews** — Dedicated page with description, pricing, and **operational rating/review system**
 - **Shopping cart** — Add/update/remove items with real-time quantity management
 - **Checkout & orders** — Place orders and track order status (Pending → Shipped → Delivered)
 - **Discount display** — Automatic discount calculation with strikethrough original prices
-- **Semantic product search** — Find similar products by semantic similarity matching
+- **Semantic product search** — Find similar products by semantic similarity matching using embeddings
 
 ### 👷 Employee Portal
 - **Order management** — View all orders and update status (Pending → Shipped → Delivered)
@@ -92,7 +93,7 @@
 - **Product oversight** — View all products, manage discounts with description
 - **Order monitoring** — View and track all orders across the platform
 
-### 🤖 AI Chatbot (Multi-Level RAG Pipeline)
+### 🤖 AI Chatbot — Advanced RAG Pipeline (NEW!)
 - **Natural language queries** — Ask about products, prices, and availability in plain English
 - **Multi-level retrieval strategy** — Three intelligent fetching methods:
   - **Graph-based retrieval** — Navigate product relationships and categories
@@ -103,6 +104,14 @@
 - **Contextual answers** — Retrieves top-k relevant product data before generating responses
 - **Floating UI widget** — Elegant glassmorphism chat interface with typing indicators
 - **Semantic product similarity** — Check similar products based on embedding similarity
+
+### 🆕 Enhanced Features
+- **Operational ratings system** — Real consumer feedback on products
+- **Semantic product search** — AI-powered similarity matching beyond keyword search
+- **Multi-role dashboards** — Tailored experiences for each user type
+- **Real-time analytics** — Live KPI updates on owner dashboard
+- **Image optimization** — Unsplash + ImageKit CDN integration
+- **Dark-mode UI** — Premium glassmorphism design with smooth animations
 
 ---
 
@@ -116,7 +125,7 @@
 | **Auth** | JWT, bcrypt, OTP via Nodemailer |
 | **File Upload** | Multer + ImageKit CDN |
 | **AI/Chatbot** | Python, FastAPI, LangChain, ChromaDB, Groq API (Llama 3.1) |
-| **Embeddings** | HuggingFace `all-MiniLM-L6-v2` |
+| **Embeddings** | HuggingFace `all-MiniLM-L6-v2` (semantic search) |
 | **Styling** | TailwindCSS, Glassmorphism, Dark Theme |
 | **Icons** | React Icons, Lucide React |
 | **Notifications** | React Toastify |
@@ -138,7 +147,7 @@ supermarket/
 │   │   ├── cartController.js   # Cart operations & checkout
 │   │   ├── employeeController.js # Orders, profile, team management
 │   │   ├── orderController.js  # Order retrieval
-│   │   ├── productController.js # Product CRUD with image upload
+│   │   ├── productController.js # Product CRUD with image upload, semantic search
 │   │   └── userController.js   # Consumer profile operations
 │   ├── middlewares/
 │   │   ├── authRole.js         # JWT verification + role-based access
@@ -163,12 +172,13 @@ supermarket/
 │   ├── certs/                  # SSL certificates for Aiven MySQL
 │   ├── server.js               # Express app entry point
 │   ├── createAdmin.js          # One-time admin seeding script
+│   ├── README.md               # Backend documentation
 │   └── .env                    # Environment variables
 │
 ├── frontend/                   # React + Vite SPA
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── FloatingChatbot.jsx  # AI chatbot widget
+│   │   │   ├── FloatingChatbot.jsx  # AI chatbot widget (RAG-powered)
 │   │   │   ├── Navbar.jsx           # Navigation bar
 │   │   │   ├── OrderCard.jsx        # Order display card
 │   │   │   └── ProtectedRoute.jsx   # Auth guard component
@@ -188,13 +198,14 @@ supermarket/
 │   │   │   └── chatbot/             # RAG backend (Python) + chat UI
 │   │   ├── App.jsx                  # Route definitions
 │   │   └── main.jsx                 # React DOM entry
+│   ├── README.md                    # Frontend documentation
 │   └── index.html                   # HTML shell with dark mode support
 │
 ├── tools/
 │   └── generate_ppt.py         # Presentation generator utility
 │
 ├── screenshots/                # Project screenshots for README
-└── readme.md                   # This file
+└── readme.md                   # Main project documentation
 ```
 
 ---
@@ -290,8 +301,8 @@ The system uses a normalized relational schema on **Aiven Cloud MySQL** with SSL
 │ phone        │     │ category     │     │ phone            │
 │ house_no     │     │ product_image│     │ email            │
 │ street       │     │ discount     │     │ password         │
-│ building     │     └──────┬───────┘     │ manager_id (FK)  │
-└──────┬──────┘            │              │ profile_photo    │
+│ building     │     │ embeddings   │     │ manager_id (FK)  │
+└──────┬──────┘     └──────┬───────┘     │ profile_photo    │
        │                   │              │ rating (NEW)     │
        │            ┌──────┴───────┐      └─────────────────┘
        │            │   Discount   │     ┌──────────────────┐
@@ -328,7 +339,7 @@ The system uses a normalized relational schema on **Aiven Cloud MySQL** with SSL
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/abhishekverma9/supermarket.git
+git clone https://github.com/ankur556/supermarket.git
 cd supermarket
 ```
 
@@ -494,6 +505,14 @@ The platform uses Gmail SMTP for sending OTP emails. To configure:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+---
+
+## 📚 Documentation
+
+- [Backend README](./backend/README.md) — API reference, architecture, setup guide
+- [Frontend README](./frontend/README.md) — Component structure, design system, features
+
+---
 
 <div align="center">
 
