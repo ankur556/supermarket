@@ -13,7 +13,7 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-**Shop4Ever** is a production-grade, full-stack supermarket management system built as a Database & Information Systems (DBIS) course project. It features three distinct user roles — **Owner**, **Employee**, and **Consumer** — each with dedicated dashboards, workflows, and access controls. The platform also integrates an **AI-powered chatbot** using RAG (Retrieval-Augmented Generation) for intelligent product queries.
+**Shop4Ever** is a production-grade, full-stack supermarket management system built as a Database & Information Systems (DBIS) course project. It features three distinct user roles — **Owner**, [...]
 
 [Getting Started](#-getting-started) · [Features](#-features) · [Tech Stack](#-tech-stack) · [API Reference](#-api-reference) · [Architecture](#-architecture)
 
@@ -74,10 +74,11 @@
 ### 👤 Consumer Portal
 - **Product browsing** — Responsive grid with search, category filters, and price range filters
 - **Dynamic product images** — Auto-fetched from Unsplash API with ImageKit fallback
-- **Product details & Reviews** — Dedicated page with description, pricing, and a live rating/review system
+- **Product details & Reviews** — Dedicated page with description, pricing, and a live **operational rating/review system**
 - **Shopping cart** — Add/update/remove items with real-time quantity management
 - **Checkout & orders** — Place orders and track order status (Pending → Shipped → Delivered)
 - **Discount display** — Automatic discount calculation with strikethrough original prices
+- **Semantic product search** — Find similar products by semantic similarity matching
 
 ### 👷 Employee Portal
 - **Order management** — View all orders and update status (Pending → Shipped → Delivered)
@@ -91,12 +92,17 @@
 - **Product oversight** — View all products, manage discounts with description
 - **Order monitoring** — View and track all orders across the platform
 
-### 🤖 AI Chatbot (RAG Pipeline)
+### 🤖 AI Chatbot (Multi-Level RAG Pipeline)
 - **Natural language queries** — Ask about products, prices, and availability in plain English
+- **Multi-level retrieval strategy** — Three intelligent fetching methods:
+  - **Graph-based retrieval** — Navigate product relationships and categories
+  - **Agentic approach** — Intelligent agents that reason about queries and context
+  - **Embedding search** — Vector similarity matching for semantic understanding
 - **Vector database** — ChromaDB with HuggingFace sentence-transformer embeddings
 - **LLM integration** — Groq API running Llama 3.1 8B for answer generation
 - **Contextual answers** — Retrieves top-k relevant product data before generating responses
 - **Floating UI widget** — Elegant glassmorphism chat interface with typing indicators
+- **Semantic product similarity** — Check similar products based on embedding similarity
 
 ---
 
@@ -218,6 +224,7 @@ supermarket/
 | `POST` | `/add` | Add new product (with image) | Admin, Employee |
 | `POST` | `/update/:id` | Update product details | Admin, Employee |
 | `POST` | `/delete/:id` | Delete a product | Admin, Employee |
+| `POST` | `/similar/:id` | Get similar products by semantic similarity | Consumer |
 
 ### Cart (`/api/cart`) — *Consumer only*
 
@@ -263,7 +270,7 @@ supermarket/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/` | Health check |
-| `POST` | `/chat` | Send query, get RAG-powered response |
+| `POST` | `/chat` | Send query, get RAG-powered response (multi-level retrieval) |
 
 ---
 
@@ -285,8 +292,8 @@ The system uses a normalized relational schema on **Aiven Cloud MySQL** with SSL
 │ street       │     │ discount     │     │ password         │
 │ building     │     └──────┬───────┘     │ manager_id (FK)  │
 └──────┬──────┘            │              │ profile_photo    │
-       │                   │              └─────────────────┘
-       │            ┌──────┴───────┐
+       │                   │              │ rating (NEW)     │
+       │            ┌──────┴───────┐      └─────────────────┘
        │            │   Discount   │     ┌──────────────────┐
        │            ├──────────────┤     │ Product_Discount │
        │            │ discount_id  │◄────┤ product_id (FK)  │
@@ -294,15 +301,15 @@ The system uses a normalized relational schema on **Aiven Cloud MySQL** with SSL
        │            │ description  │     └──────────────────┘
        │            └──────────────┘
        │
-  ┌────┴──────┐     ┌──────────────┐
-  │  Orders   │     │  Cart_Items  │
-  ├───────────┤     ├──────────────┤
-  │ order_id  │     │ cart_id      │
-  │ consumer_id│    │ consumer_id  │
-  │ total_amount│   │ product_id   │
-  │ status    │     │ quantity     │
-  │ created_at│     └──────────────┘
-  └───────────┘
+   ┌───┴──────┐     ┌──────────────┐
+   │  Orders  │     │  Cart_Items  │
+   ├──────────┤     ├──────────────┤
+   │ order_id │     │ cart_id      │
+   │consumer_id│    │ consumer_id  │
+   │total_amount│   │ product_id   │
+   │ status   │     │ quantity     │
+   │created_at│     └──────────────┘
+   └──────────┘
 ```
 
 ---
@@ -461,8 +468,10 @@ The platform uses Gmail SMTP for sending OTP emails. To configure:
 4. **Add products** — Use the Employee panel to add products with images
 5. **Consumer signup** — Register a new consumer account (OTP verified)
 6. **Browse & shop** — Search products, apply filters, add to cart
-7. **Checkout** — Place an order and track status
-8. **AI Chatbot** — Click the floating chat icon and ask about products
+7. **Leave ratings & reviews** — Add product ratings on the product details page
+8. **Find similar products** — Use semantic similarity search to discover related items
+9. **Checkout** — Place an order and track status
+10. **AI Chatbot** — Click the floating chat icon and ask about products using multi-level RAG retrieval
 
 ---
 
